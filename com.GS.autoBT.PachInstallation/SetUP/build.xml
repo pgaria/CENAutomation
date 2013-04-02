@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Run WindowTester Pro UI tests" default="runWtpTestsWithAnt" basedir=".">
+  
+  <import file="setup.xml"/>
+  
+  <property name="eclipse-test-version" value="3.7.2"/>
+  <property name="eclipse-test-plugin.version" value="org.eclipse.test_3.3.100"/>
+  <property name="org.eclipse.test" value="3.3.100"/>
+  <property name="eclipse-test-home" value="${basedir}/eclipse-test"/>
+  <property name="eclipse-home" value="${eclipse-test-home}"/>
+
+  <target name="runWtpTestsWithAnt">
+    <antcall target="prepare"/>
+    <antcall target="test"/>
+    <antcall target="createReport"/>
+  </target>
+
+  <target name="prepare">
+    <delete dir="${eclipse-test-home}"/>		
+    
+    <!-- Extract Eclipse RCP to Eclipse Test Home dir -->
+    <antcall target="unzipEclipse">
+      <param name="targetDir" value="${eclipse-test-home}"/>
+    </antcall>
+    <antcall target="untarEclipse">
+      <param name="targetDir" value="${eclipse-test-home}"/>
+    </antcall>
+    
+    <!-- Copy Window Tester Pro plugins and features to Eclipse Test home dir-->
+    <copy todir="${eclipse-test-home}">
+      <fileset dir="${wtpRepoRunDir}">
+	<include name="**/features/"/>
+	<include name="**/plugins/"/>
+      </fileset>
+    </copy>
+
+    <!-- Copy Eclipse Test Framework plugins and features to Eclipse Test home dir-->
+    <copy todir="${eclipse-test-home}">
+      <fileset dir="${etfRunDir}">
+	<include name="**/features/"/>
+	<include name="**/plugins/"/>
+      </fileset>
+    </copy>
+
+    <!-- Patch library.xml file (wrong path to JUNIT.XSL file) -->
+    <copy todir="${eclipse-test-home}/plugins/${eclipse-test-plugin.version}" overwrite="true">
+      <fileset dir="${basedir}">
+	<include name="library.xml.patched"/>
+      </fileset>
+      <globmapper from="*.xml.patched" to="*.xml"/>
+    </copy>
+
+    <!-- Copy SDK Examples plugins and features to Eclipse Test home dir-->
+    <copy todir="${eclipse-test-home}">
+      <fileset dir="${sdkExamplesRunDir}">
+	<include name="**/features/"/>
+	<include name="**/plugins/"/>
+      </fileset>
+    </copy>
+
+    <!-- Copy plugin containing the UI tests to Eclipse Test home dir -->
+    <copy todir="${eclipse-test-home}/plugins">
+      <fileset dir="${basedir}">
+	<include name="com.windowtester.example.swtcontrols_test_*.jar"/>
+      </fileset>
+    </copy>
+  </target>
+
+
+  <!-- Run UI tests (one Eclipse instance for each test) -->
+  <target name="test">
+    <property name="pluginName" value="com.windowtester.example.swtcontrols_test" />
+    <antcall target="abstractTestClean">
+	<param name="testClassName" value="com.windowtester.example.swtcontrols.test.SWTControlsViewTest" />
+    </antcall>
+    <!-- more test cases should be inserted here -->
+    <!--
+    <antcall target="abstractTestClean">
+	<param name="testClassName" value="com.windowtester.example.swtcontrols.test.SWTControlsViewTest2" />
+    </antcall>
+    -->
+  </target>
+
+  <!-- parameters according to the platform -->
+  <target name="setPlatformWin" if="${windows}">
+      <property name="baseos" value="win32"/>
+      <property name="basews" value="win32"/>
+      <property name="basearch" value="x86"/>
+  </target>
+
+  <target name="setPlatformLinux" unless="${windows}">
+      <property name="baseos" value="linux"/>
+      <property name="basews" value="gtk"/>
+      <property name="basearch" value="x86"/>
+  </target>
+  
+  <!-- abstract test target -->
+  <target name="abstractTestClean" depends="setPlatformWin,setPlatformLinux">
+        <property name="eclipse-test-library-file" value="${eclipse-test-home}/plugins/${eclipse-test-plugin.version}/library.xml"/>
+	<ant target="ui-test" antfile="${eclipse-test-library-file}" dir="${eclipse-test-home}">
+		<property name="os" value="${baseos}"/>
+		<property name="ws" value="${basews}"/>
+		<property name="arch" value="${basearch}"/>
+		<property name="data-dir" value="${eclipse-test-home}/junit-workspace -clean" />
+		<property name="plugin-name" value="${pluginName}" />
+		<property name="classname" value="${testClassName}" />
+	</ant>
+  </target>
+  
+  <target name="createReport">
+    <!-- surrounding <testsuites> tags do not work with Ant junitreport task !?, therefore they need to be removed -->
+    <replaceregexp file="${eclipse-test-home}/results/com.windowtester.example.swtcontrols.test.SWTControlsViewTest.xml"
+               match="&lt;.?testsuites&gt;"
+               replace=""
+               byline="true"
+    />
+    
+      <mkdir dir="${eclipse-test-home}/report/html"/>
+      <junitreport todir="${eclipse-test-home}/report">
+	<fileset dir="${eclipse-test-home}/results">
+	  <include name="*.xml"/>
+	</fileset>
+	<report format="noframes" todir="${eclipse-test-home}/report/html"/>
+      </junitreport>
+  </target>
+
+</project>

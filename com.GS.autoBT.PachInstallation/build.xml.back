@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="RunAnt">  
+	
+	<!-- Setting the Class Path -->
+		<path id="class_path">
+		   <pathelement path="C:/GoldenSource/Workbench_8.4.11/workspace/com.GS.Workbench.Automation/lib/ant-contrib.jar"/>
+	           
+			<pathelement path="C:/GoldenSource/Workbench_8.4.11/workspace/com.GS.Workbench.Automation/lib/ojdbc14.jar"/>
+			 
+			
+			<pathelement path="C:/GoldenSource/Workbench_8.4.11/eclipse/plugins/org.eclipse.equinox.launcher_1.0.201.R35x_v20090715.jar"/>
+			<pathelement path="C:/GoldenSource/Workbench_8.4.11/eclipse/plugins/org.eclipse.equinox.p2.metadata.generator_*.jar"/>
+		
+			<pathelement path="C:/GoldenSource/Workbench_8.4.11/workspace/com.GS.Workbench.Automation/bin"/>
+			
+		</path>
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties" classpathref="class_path"/>
+	
+	 <property name="plugin.dir" value="C:/GoldenSource/Workbench_8.4.11/eclipse/plugins"/>
+	   <property name="test.reports.dir" value="C:/GoldenSource/Workbench_8.4.11/eclipse/testReports"/>
+	   <property name="test.classes.list" value="SetupWindow"/>
+
+  <target name="test2">
+  	<java classname="com.GS.Utility.PDETestPortLocator" fork="yes" classpathref="class_path">
+       	 
+      </java>
+      <waitfor maxwait="10" maxwaitunit="second" checkevery="100" checkeveryunit="millisecond">
+         <available file="pde_test_port.properties"/>
+      </waitfor>
+      <property file="pde_test_port.properties"/>
+      <echo message="Using port ${pde.test.port} for listening to PDE Test run"/>
+      <parallel>
+         <daemons>
+            <antcall target="run_pde_test_listener"/>
+         </daemons>
+         <sequential>
+            <sleep seconds="5"/>
+            <!-- Give the listener a few seconds to start up -->
+            <antcall target="run_pde_tests"/>
+         </sequential>
+      </parallel>
+   </target>
+
+   <property name="plugin.name" value="SetupFirst"/>
+
+   <target name="run_pde_test_listener">
+      <java classname="com.GS.Utility.PDETestResultsCollector" fork="yes" classpathref="class_path">
+         <sysproperty key="DEBUG" value="true"/>
+         <arg line="${plugin.name} ${pde.test.port}"/>
+         <jvmarg value="-Duser=admin -Dpasswd=admin" />
+        </java>
+   </target>
+
+  
+   <target name="run_pde_tests" >
+      <mkdir dir="${test.reports.dir}/output/ws"/>
+      <!--
+      <java classname="org.eclipse.equinox.launcher.Main" fork="yes" classpathref="class_path">
+         <arg line="-application com.windowtester.runner.application -product com.thegoldensource.workbench.IDE -data C:\GoldenSource\Workbench_8.4.11\junit-workspace -dev bin -clean -testpluginname com.GS.Workbench.Automation -classnames ${test.classes.list} -verbose "/>
+          -->
+		      <java classname="org.eclipse.equinox.launcher.Main" fork="yes" classpathref="class_path">
+         <arg line="-application org.eclipse.swtbot.eclipse.junit4.headless.swtbottestapplication -product com.thegoldensource.workbench.IDE -data C:\GoldenSource\Workbench_8.4.1111\junit-workspace -dev bin -clean -testPluginName com.GS.autoBT.PachInstallation -className com.gs.NewActivityWizard.Reg_158 -verbose "/>
+      </java>
+   </target>
+</project>
+
+<!--<project name="testsuite" default="run" basedir=".">
+    <property name="eclipse-home" value="C:/GoldenSource/Workbench_8.4.1111/eclipse"/>
+    <property name="plugin-name" value="com.GS.autoBT.PachInstallation"/>
+    <property name="test-classname" value="com.gs.NewActivityWizard.Reg_158"/>
+    <property name="library-file" value="${eclipse-home}/plugins/org.eclipse.swtbot.eclipse.junit4.headless_2.0.4.20110304_0338-e5aff47-dev-e35/library.xml"/>
+	
+    <target name="suite">
+ 
+	<property name="jvmOption" value=""></property>
+ 
+		<property name="temp-workspace" value="workspace" />
+      
+ 
+	<ant target="swtbot-test" antfile="${library-file}" dir="${eclipse-home}">
+        <property name="data-dir" value="${temp-workspace}" />
+        <property name="plugin-name" value="${plugin-name}" />
+	    <property name="os" value="win32" />
+	    <property name="ws" value="workspace" />
+	    <property name="arch" value="x86" />
+        <property name="classname" value="${test-classname}" />
+        <property name="vmargs" value=" -Xms128M -XX:MaxPermSize=512M -Xmx512M"/>
+        </ant>
+    </target>
+ 
+    <target name="cleanup" />
+ 
+    <target name="run" depends="suite,cleanup">
+    </target>
+ 
+</project>    -->

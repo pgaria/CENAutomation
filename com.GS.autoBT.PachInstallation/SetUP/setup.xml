@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Setup WindowTester Pro UI tests" default="setup" basedir=".">
+  
+  <property name="setup.eclipse.home" value="D:/CEN_TEST"/>
+  <property name="eclipseGS" value="Full_8_4_1_1_GoldenSource_Workbench"/>
+   <property name="Eclipse.Unzip.Setup" value="${setup.eclipse.home}/WorkbenchSetup"/>
+  <property name="Test.eclipse.home" value="Workbench_8.4.1_Test"/> 
+ <property name="JAVA_HOME" value="C:/Program Files/Java/jdk1.6.0_17"/>
+  
+
+  <target name="setup">
+    <!-- Extract Eclipse RCP, it's required to run the AntRunner application -->
+    <antcall target="unzipEclipse"/>
+	 <antcall target="CretePeopertyFile"/>
+        <ant antfile="${Eclipse.Unzip.Setup}/build.xml" target="install"> 
+	      <property name="basedir" value="${Eclipse.Unzip.Setup}"/>
+	   </ant>
+  </target>  
+  
+  <target name="unzipEclipse">
+    <unzip dest="${Eclipse.Unzip.Setup}">
+      <fileset dir="${setup.eclipse.home}">
+	<include name="${eclipseGS}.zip"/>
+      </fileset>
+     </unzip>
+  </target>
+   
+   <target name="CretePeopertyFile">
+   <propertyfile file="${Eclipse.Unzip.Setup}/ant.install.properties" comment="My properties">
+    <entry  key="install.dir" value="${setup.eclipse.home}/${Test.eclipse.home}"/>
+     <entry  key="install.ic" value="true"/>
+	 <entry  key="createShortcut" value="all"/>
+	 <entry  key="java.dir" value="${JAVA_HOME}"/>
+	 <entry  key="install.oui.base" value="true"/>
+	 <entry  key="install.bed" value="true"/>
+	 <entry  key="basedir" value="${Eclipse.Unzip.Setup}/."/>
+	 <entry  key="install.md" value="true"/>
+	 <entry  key="install.tad" value="true"/>
+	</propertyfile>
+
+</target>
+ 
+</project>
