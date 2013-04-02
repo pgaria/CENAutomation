@@ -1,21 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Setup WindowTester Pro UI tests" default="setup" basedir=".">
   
-  <property name="setup.eclipse.home" value="D:/CEN_TEST"/>
-  <property name="eclipseGS" value="Full_8_4_1_1_GoldenSource_Workbench"/>
+  <property name="setup.eclipse.home" value="E:\CEN_TEST"/>
+  <property name="eclipseGS" value="Full_8_4_2_1RC1_GoldenSource_Workbench"/>
    <property name="Eclipse.Unzip.Setup" value="${setup.eclipse.home}/WorkbenchSetup"/>
   <property name="Test.eclipse.home" value="Workbench_8.4.1_Test"/> 
- <property name="JAVA_HOME" value="C:/Program Files/Java/jdk1.6.0_17"/>
-  
+ <property name="JAVA_HOME" value="C:/Program Files/Java/jdk1.7.0"/>
+  <property name="SWT_Bot_Setup" value="SWT_Bot_Installer"/>
+  <property name="SWTbot_Ins" value="swtbot-update-site-2.0.4.20110304_0338-e5aff47-dev-e35"/>
+  <property name="SWtbot_jnuit4" value="org.eclipse.swtbot.eclipse.test.junit4-2.0.5.20111003_1754-3676ac8-dev-e36"/>
+  <property name="SwtBot_junitPlugin" value="org.eclipse.swtbot.eclipse.junit4.headless_2.0.5.20111003_1754-3676ac8-dev-e36"/>
 
   <target name="setup">
     <!-- Extract Eclipse RCP, it's required to run the AntRunner application -->
     <antcall target="unzipEclipse"/>
-	 <antcall target="CretePeopertyFile"/>
-        <ant antfile="${Eclipse.Unzip.Setup}/build.xml" target="install"> 
+	 <antcall target="CretePropertyFile"/>
+    <antcall target="InstallEclipse"/>
+	<antcall target="UnzipSWTbot"/>
+	<antcall target="SWTInEclipse"/>
+	<antcall target="SetupTestSuite"/>
+ 	<antcall target="RunSWTbotTest"/>
+	<antcall target="CleanTestEnv"/>
+    </target>  
+  
+  <target name="UnzipSWTbot">
+    <unzip dest="${SWT_Bot_Setup}">
+      <fileset dir="${setup.eclipse.home}">
+	<include name="${SWT_Bot_Setup}.zip"/>
+      </fileset>
+     </unzip>
+   <unzip dest="${SWT_Bot_Setup}/${SWTbot_Ins}">
+      <fileset dir="${SWT_Bot_Setup}">
+	<include name="${SWTbot_Ins}.zip"/>
+      </fileset>
+     </unzip>
+	  <unzip dest="${SWT_Bot_Setup}/${SWtbot_jnuit4}">
+      <fileset dir="${SWT_Bot_Setup}">
+	<include name="${SWtbot_jnuit4}.zip"/>
+      </fileset>
+     </unzip>
+  </target>
+  
+  <target name="SWTInEclipse">
+   <copy todir="${setup.eclipse.home}/${Test.eclipse.home}/eclipse/plugins/${SwtBot_junitPlugin}">
+    <fileset dir="${setup.eclipse.home}/${SWT_Bot_Setup}/${SWtbot_jnuit4}/eclipse/plugins/${SwtBot_junitPlugin}"/>
+  </copy>
+   <copy todir="${setup.eclipse.home}/${Test.eclipse.home}/eclipse/plugins">
+     <fileset dir="${setup.eclipse.home}/${SWT_Bot_Setup}/${SWTbot_Ins}/plugins" includes="/*.jar"/>
+  </copy>
+  </target>
+  
+  <target name="InstallEclipse">
+          <ant antfile="${Eclipse.Unzip.Setup}/build.xml" target="install"> 
 	      <property name="basedir" value="${Eclipse.Unzip.Setup}"/>
 	   </ant>
-  </target>  
+  </target>
   
   <target name="unzipEclipse">
     <unzip dest="${Eclipse.Unzip.Setup}">
@@ -25,7 +64,7 @@
      </unzip>
   </target>
    
-   <target name="CretePeopertyFile">
+   <target name="CretePropertyFile">
    <propertyfile file="${Eclipse.Unzip.Setup}/ant.install.properties" comment="My properties">
     <entry  key="install.dir" value="${setup.eclipse.home}/${Test.eclipse.home}"/>
      <entry  key="install.ic" value="true"/>
@@ -37,7 +76,31 @@
 	 <entry  key="install.md" value="true"/>
 	 <entry  key="install.tad" value="true"/>
 	</propertyfile>
-
 </target>
+    
+	<target name="SetupTestSuite">
+         <unzip dest="${setup.eclipse.home}/${Test.eclipse.home}/eclipse/plugins">
+      <fileset dir="${setup.eclipse.home}">
+	<include name="com.GS.autoBT.PachInstallation_1.0.0.201303291619.zip"/>
+      </fileset>
+     </unzip>
+	  
+	</target>
+	
+	<target name="RunSWTbotTest">
+	  <ant antfile="${setup.eclipse.home}/build.xml" target="run"/> 
+	     	</target>
+   
+   
+     <target name="CleanTestEnv">
+		
+		<delete includeemptydirs="true">
+			<dirset dir="${Eclipse.Unzip.Setup}"/>
+			<dirset dir="${setup.eclipse.home}/${SWT_Bot_Setup}"/>
+			<!--<fileset dir="${setup.eclipse.home}/${Test.eclipse.home}/"/> -->
+		</delete>
+		</target>
+   
+   
  
 </project>
