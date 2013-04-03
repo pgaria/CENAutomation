@@ -10,8 +10,8 @@
  <property name="SWT_Bot_Setup" value="SWT_Bot_Installer"/>           <!-- Default swtbot installer folder -->
   <property name="SWTbot_Ins" value="swtbot-update-site-2.0.4.20110304_0338-e5aff47-dev-e35"/>
   <property name="SWtbot_jnuit4" value="org.eclipse.swtbot.eclipse.test.junit4-2.0.5.20111003_1754-3676ac8-dev-e36"/>
-  <property name="SwtBot_junitPlugin" value="org.eclipse.swtbot.eclipse.junit4.headless_2.0.5.20111003_1754-3676ac8-dev-e36"/>
-
+  <property name="SwtBot.headless.Plugin" value="org.eclipse.swtbot.eclipse.junit.headless"/>
+  <property name="SwtBot.headless.Plugin.version" value="2.1.0.201302221524"/> 
   <target name="setup">
     <!-- Extract Eclipse RCP, it's required to run the AntRunner application -->
     <antcall target="unzipEclipse"/>
@@ -42,22 +42,26 @@
      </unzip>
   </target>
   
-  <target name="SWTInEclipse">
-   <copy todir="${setup.home}/${Test.eclipse.home}/eclipse/plugins/${SwtBot_junitPlugin}">
-    <fileset dir="${setup.home}/${SWT_Bot_Setup}/${SWtbot_jnuit4}/eclipse/plugins/${SwtBot_junitPlugin}"/>
-  </copy>
-   <copy todir="${setup.home}/${Test.eclipse.home}/eclipse/plugins">
-     <fileset dir="${setup.home}/${SWT_Bot_Setup}/${SWTbot_Ins}/plugins" includes="/*.jar"/>
-  </copy>
-  </target>
+  <target name="HeadlessJunitInstallEclipse"><!-- Copy the Headless swtbto plugin folder to the Plugins and the Library file is chnaged -->
+     <!-- Unzip the jar file for library file and junit framework-->
+	<unzip src="${setup.home}/${Test.eclipse.home}/eclipse/plugins/${SwtBot.headless.Plugin}_${SwtBot.headless.Plugin.version}.jar" dest="${setup.home}/${Test.eclipse.home}/eclipse/plugins/${SwtBot.headless.Plugin}_${SwtBot.headless.Plugin.version}"/>
+  	 <!-- Patch library.xml file {REplacing the Library file from the Patched one}, our file is present in the base directory-->
+    <copy todir="${setup.home}/${Test.eclipse.home}/eclipse/plugins/${SwtBot.headless.Plugin}_${SwtBot.headless.Plugin.version}" overwrite="true">
+      <fileset dir="${basedir}">
+	<include name="library.xml.patched"/>
+      </fileset>
+      <globmapper from="library.xml.patched" to="library.xml"/>
+    </copy>   
+      
+     </target>
   
-  <target name="InstallEclipse">
+  <target name="InstallEclipse"> <!-- Install Eclipse Workbench using the Build.xml of the Installation -->
           <ant antfile="${Eclipse.Unzip.Setup}/build.xml" target="install"> 
 	      <property name="basedir" value="${Eclipse.Unzip.Setup}"/>
 	   </ant>
   </target>
   
-  <target name="unzipEclipse">
+  <target name="unzipEclipse">   <!-- unzip the Glden Source Workbench -->
     <unzip dest="${Eclipse.Unzip.Setup}">
       <fileset dir="${setup.home}">
 	<include name="${eclipseGS}.zip"/>
@@ -65,7 +69,7 @@
      </unzip>
   </target>
    
-   <target name="CretePropertyFile">
+   <target name="CretePropertyFile"> <!-- Crete a property file for build.xml file of the workbench installer which uses these property -->
    <propertyfile file="${Eclipse.Unzip.Setup}/ant.install.properties" comment="My properties">
     <entry  key="install.dir" value="${setup.home}/${Test.eclipse.home}"/>
      <entry  key="install.ic" value="true"/>
@@ -79,7 +83,7 @@
 	</propertyfile>
 </target>
     
-	<target name="SetupTestSuite">
+	<target name="SetupTestSuite">      <!-- Set up the Test Suite, by Copy the Testsuite plugin jar to the Workbench plugins folder -->
          <unzip dest="${setup.home}/${Test.eclipse.home}/eclipse/plugins">
       <fileset dir="${setup.home}">
 	<include name="com.GS.autoBT.PachInstallation_1.0.0.201303291619.zip"/>
@@ -88,12 +92,12 @@
 	  
 	</target>
 	
-	<target name="RunSWTbotTest">
+	<target name="RunSWTbotTest">         <!-- To Run the Swtbot Tests call the Build.xml file and the Teststart -->
 	  <ant antfile="${setup.home}/build.xml" target="run"/> 
 	     	</target>
    
    
-     <target name="CleanTestEnv">
+     <target name="CleanTestEnv">   <!-- Clean Test Environment and all-->
 		
 		<delete includeemptydirs="true">
 			<dirset dir="${Eclipse.Unzip.Setup}"/>
@@ -102,7 +106,7 @@
 		</delete>
 		</target>
 					
-    <target name="InstallSwtbotP2">
+    <target name="InstallSwtbotP2">   <!-- Install the SWTbot using the p2 directset of Eclipse, call the Cmd file which used to install the Propcess -->
 	      <exec dir="${setup.home}/${Test.eclipse.home}/eclipse" executable="${SWTbot.p2.Installer.exe}/InstallSwtbotP2.cmd" output="${SWTbot.p2.Installer.exe}/Swtbot_p2_Install_log.txt">
 		    <arg value="${setup.home}/${Test.eclipse.home}/eclipse"/>
 	       </exec>
