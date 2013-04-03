@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Setup WindowTester Pro UI tests" default="setup" basedir=".">
   
-  <property name="setup.home" value="C:\GoldenSource"/>  <!-- Specify the Steup home location where workbench and Setup files present -->
-  <property name="SWTbot.p2.Installer.exe" value="C:\GoldenSource"/>   <!-- Specify the InstallSwtbotP2.cmd File location for the p2 installation of SWTbot -->
-  <property name="eclipseGS" value="Full_8_4_2_1RC1_GoldenSource_Workbench"/>  <!-- Specify the Name of the Workbench folder Name -->
-   <property name="Test.eclipse.home" value="Workbench_8.4.2_p2"/>  <!-- DEfault Workbench Name -->
-  <property name="JAVA_HOME" value="C:/Program Files/Java/jdk1.7.0"/>  <!-- JDK path -->
-<property name="Eclipse.Unzip.Setup" value="${setup.home}/WorkbenchSetup"/>   
- <property name="SWT_Bot_Setup" value="SWT_Bot_Installer"/>           <!-- Default swtbot installer folder -->
+  <property name="setup.eclipse.home" value="E:\CEN_TEST"/>
+  <property name="eclipseGS" value="Full_8_4_2_1RC1_GoldenSource_Workbench"/>
+   <property name="Eclipse.Unzip.Setup" value="${setup.eclipse.home}/WorkbenchSetup"/>
+  <property name="Test.eclipse.home" value="Workbench_8.4.1_Test"/> 
+ <property name="JAVA_HOME" value="C:/Program Files/Java/jdk1.7.0"/>
+  <property name="SWT_Bot_Setup" value="SWT_Bot_Installer"/>
   <property name="SWTbot_Ins" value="swtbot-update-site-2.0.4.20110304_0338-e5aff47-dev-e35"/>
   <property name="SWtbot_jnuit4" value="org.eclipse.swtbot.eclipse.test.junit4-2.0.5.20111003_1754-3676ac8-dev-e36"/>
   <property name="SwtBot_junitPlugin" value="org.eclipse.swtbot.eclipse.junit4.headless_2.0.5.20111003_1754-3676ac8-dev-e36"/>
@@ -26,7 +25,7 @@
   
   <target name="UnzipSWTbot">
     <unzip dest="${SWT_Bot_Setup}">
-      <fileset dir="${setup.home}">
+      <fileset dir="${setup.eclipse.home}">
 	<include name="${SWT_Bot_Setup}.zip"/>
       </fileset>
      </unzip>
@@ -43,11 +42,11 @@
   </target>
   
   <target name="SWTInEclipse">
-   <copy todir="${setup.home}/${Test.eclipse.home}/eclipse/plugins/${SwtBot_junitPlugin}">
-    <fileset dir="${setup.home}/${SWT_Bot_Setup}/${SWtbot_jnuit4}/eclipse/plugins/${SwtBot_junitPlugin}"/>
+   <copy todir="${setup.eclipse.home}/${Test.eclipse.home}/eclipse/plugins/${SwtBot_junitPlugin}">
+    <fileset dir="${setup.eclipse.home}/${SWT_Bot_Setup}/${SWtbot_jnuit4}/eclipse/plugins/${SwtBot_junitPlugin}"/>
   </copy>
-   <copy todir="${setup.home}/${Test.eclipse.home}/eclipse/plugins">
-     <fileset dir="${setup.home}/${SWT_Bot_Setup}/${SWTbot_Ins}/plugins" includes="/*.jar"/>
+   <copy todir="${setup.eclipse.home}/${Test.eclipse.home}/eclipse/plugins">
+     <fileset dir="${setup.eclipse.home}/${SWT_Bot_Setup}/${SWTbot_Ins}/plugins" includes="/*.jar"/>
   </copy>
   </target>
   
@@ -59,7 +58,7 @@
   
   <target name="unzipEclipse">
     <unzip dest="${Eclipse.Unzip.Setup}">
-      <fileset dir="${setup.home}">
+      <fileset dir="${setup.eclipse.home}">
 	<include name="${eclipseGS}.zip"/>
       </fileset>
      </unzip>
@@ -67,7 +66,7 @@
    
    <target name="CretePropertyFile">
    <propertyfile file="${Eclipse.Unzip.Setup}/ant.install.properties" comment="My properties">
-    <entry  key="install.dir" value="${setup.home}/${Test.eclipse.home}"/>
+    <entry  key="install.dir" value="${setup.eclipse.home}/${Test.eclipse.home}"/>
      <entry  key="install.ic" value="true"/>
 	 <entry  key="createShortcut" value="all"/>
 	 <entry  key="java.dir" value="${JAVA_HOME}"/>
@@ -80,8 +79,8 @@
 </target>
     
 	<target name="SetupTestSuite">
-         <unzip dest="${setup.home}/${Test.eclipse.home}/eclipse/plugins">
-      <fileset dir="${setup.home}">
+         <unzip dest="${setup.eclipse.home}/${Test.eclipse.home}/eclipse/plugins">
+      <fileset dir="${setup.eclipse.home}">
 	<include name="com.GS.autoBT.PachInstallation_1.0.0.201303291619.zip"/>
       </fileset>
      </unzip>
@@ -89,7 +88,7 @@
 	</target>
 	
 	<target name="RunSWTbotTest">
-	  <ant antfile="${setup.home}/build.xml" target="run"/> 
+	  <ant antfile="${setup.eclipse.home}/build.xml" target="run"/> 
 	     	</target>
    
    
@@ -97,17 +96,26 @@
 		
 		<delete includeemptydirs="true">
 			<dirset dir="${Eclipse.Unzip.Setup}"/>
-			<dirset dir="${setup.home}/${SWT_Bot_Setup}"/>
-			<!--<fileset dir="${setup.home}/${Test.eclipse.home}/"/> -->
+			<dirset dir="${setup.eclipse.home}/${SWT_Bot_Setup}"/>
+			<!--<fileset dir="${setup.eclipse.home}/${Test.eclipse.home}/"/> -->
 		</delete>
 		</target>
-					
+		
+	<property name="Swt-launcher-arg-line" value="
+			-application org.eclipse.equinox.p2.director
+			-repository http://download.eclipse.org/technology/swtbot/releases/latest/,http://download.eclipse.org/releases/juno/
+			-installIU org.eclipse.swtbot.forms.feature.group,org.eclipse.swtbot.eclipse.feature.group,org.eclipse.swtbot.eclipse.gef.feature.group,org.eclipse.swtbot.feature.group,org.eclipse.swtbot.ide.feature.group,org.eclipse.swtbot.eclipse.test.junit.feature.group
+			-tag swtbot
+			-destination ${setup.eclipse.home}/${Test.eclipse.home}/eclipse
+			-profile SDKProfile"
+			 />	
+			
     <target name="InstallSwtbotP2">
-	      <exec dir="${setup.home}/${Test.eclipse.home}/eclipse" executable="${SWTbot.p2.Installer.exe}/InstallSwtbotP2.cmd" output="${SWTbot.p2.Installer.exe}/Swtbot_p2_Install_log.txt">
-		    <arg value="${setup.home}/${Test.eclipse.home}/eclipse"/>
-	       </exec>
-	    </target>	
-	   
+      <exec executable="${setup.eclipse.home}/${Test.eclipse.home}/eclipse/eclipsec.exe">
+      <arg value="${Swt-launcher-arg-line}"/>
+      
+    </exec>
+    </target>	
    
  
 </project>
